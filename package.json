@@ -1,0 +1,6 @@
+{
+  "name": "agent-skills",
+  "packageManager": "yarn@6.0.0-rc.19",
+  "private": true,
+  "type": "module"
+}
