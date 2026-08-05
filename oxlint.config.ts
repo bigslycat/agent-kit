@@ -13,4 +13,6 @@ export default defineConfig({
     typeAware: true,
     typeCheck: true,
   },
+
+  ignorePatterns: ['.opencode/commands/opsx-*', '.opencode/skills/openspec-*'],
 })
