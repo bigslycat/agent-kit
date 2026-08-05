@@ -1,6 +1,11 @@
 {
   "name": "agent-skills",
   "private": true,
+  "license": "MIT",
+  "author": {
+    "name": "Pavel Tereschenko",
+    "email": "bigslycat@protonmail.com"
+  },
   "type": "module",
   "scripts": {
     "check": "npm run fmt:check && npm run lint",
