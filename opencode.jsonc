@@ -24,6 +24,7 @@
 
   "lsp": {
     "eslint": { "disabled": true },
+    "biome": { "disabled": true },
     "oxlint": {
       "command": ["yarn", "oxlint", "--lsp"],
       "extensions": [
