@@ -1,6 +1,22 @@
 {
   "name": "agent-skills",
-  "packageManager": "yarn@6.0.0-rc.19",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "check": "npm run fmt:check && npm run lint",
+    "fix": "npm run lint:fix && npm run fmt",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "oxfmt": "^0.62.0",
+    "oxlint": "^1.77.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "typescript": "^7.0.2"
+  },
+  "packageManager": "yarn@6.0.0-rc.19"
 }
