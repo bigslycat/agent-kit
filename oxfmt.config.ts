@@ -22,6 +22,4 @@ export default defineConfig({
       },
     },
   ],
-
-  ignorePatterns: ['.opencode/commands/opsx-*', '.opencode/skills/openspec-*'],
 })
