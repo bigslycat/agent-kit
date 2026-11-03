@@ -6,220 +6,155 @@ license: MIT
 
 # jq
 
-Treat jq output as an evidence view, not as the source. For writing, explanation,
-review, or debugging without runnable input, apply the relevant semantic, shell,
-and version checks and state unverified assumptions; source reachability gates
-execution, not invocation.
+Use jq to reduce accessible JSON before irrelevant data enters context. Treat
+the output as a view of the source, retaining enough evidence for the decision.
+For writing, explanation, review, or debugging without runnable input, apply
+relevant semantic, shell, and compatibility checks and state what is unverified.
 
-**Required version context:** Read
-[`references/version-compatibility.md`](references/version-compatibility.md)
-before using a version-sensitive option, builtin, operator, syntax, or behavior;
-targeting jq older than 1.8 or an unknown/vendor implementation; answering a
-history question; or relying on build/platform behavior. Check the target when
-execution is allowed. The current authority is the official
-[jq 1.8 manual](https://jqlang.org/manual/v1.8/).
+## Choose The Shortest Useful Path
 
-## 1. Establish The Boundary
+For a read-only query over a stable file with a known schema, run the minimal
+filter directly. Inspect shape when it is unknown or results contradict
+expectations; do not require a separate probe or snapshot for this path.
 
-Use jq to select, project, normalize, aggregate, validate, redact, compare, or
-prepare typed/delimited output when it reduces accessible JSON before irrelevant
-data enters context.
+| Source                                                                           | Treatment                                                                     |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Persistent jq-compatible file                                                    | Query read-only and revise the view against the same source.                  |
+| Cheap, side-effect-free, sufficiently repeatable producer                        | Pipe directly when each stage's failure is observable.                        |
+| Stateful, unique, expensive, rate-limited, time-sensitive, or uncertain producer | Capture complete output and producer status before filtering.                 |
+| Tool with a native selector or approved full-output path/handle                  | Prefer its selector when sufficient; otherwise query the materialized result. |
+| Small JSON or a result visible only in context                                   | Reason directly or use native tool facilities; context is not shell stdin.    |
+| JSONC, JSON5, YAML, XML, or another format                                       | Use a format-aware parser or explicit conversion.                             |
 
-| Source                                                                           | Treatment                                                             |
-| -------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Persistent jq-compatible file                                                    | Query read-only; revise views against the same evidence.              |
-| Cheap, side-effect-free, sufficiently repeatable producer                        | Pipe directly only after the replay gate.                             |
-| Stateful, unique, expensive, rate-limited, time-sensitive, or uncertain producer | Capture complete stdout and producer status before jq.                |
-| Tool result with a native selector                                               | Prefer the selector when it preserves the required evidence.          |
-| Tool result with an approved full-output path or handle                          | Query that materialized result without replay.                        |
-| Result visible only in context                                                   | Reason directly or use native tool facilities; it is not shell stdin. |
-| Specialized/source-side query, or small visible JSON                             | Prefer the narrower operation; jq adds no useful boundary.            |
-| JSONC, JSON5, YAML, XML, or another format                                       | Use a format-aware parser or explicit conversion.                     |
+Before execution, identify actual bytes, a file, an approved handle, or a safe
+producer path. Prefer a narrower source-side query when it preserves the needed
+evidence. Read-only producers can still yield unique observations.
 
-Follow higher-priority tool/runtime instructions. Before execution, identify the
-actual bytes, file, handle, selector, or safe replay path. Read-only does not
-imply repeatable: status, random samples, log tails, and changing resources can
-be unique observations.
+## Preserve Valuable Input
 
-**Continue when:** the request can be handled statically, or execution has a
-useful jq role and a concrete source path.
+For a valuable or uncertain producer, use a tool-managed full-output handle or
+approved secure temporary storage, outside the repository when possible:
 
-## 2. Protect Ephemeral Evidence
+1. Run the producer once; capture complete stdout, separate stderr, and status.
+2. Check capture completeness and parseability. Valid JSON does not cancel a
+   producer failure.
+3. Inspect and query the snapshot. Check an unfamiliar or nontrivial filter
+   against that snapshot before relying on its output.
+4. Retain the source until the result is validated, then release it according
+   to its sensitivity and retention requirements.
 
-Allow `producer | jq ...` only when all six facts are established:
+Never replay a valuable producer merely to repair a filter. A live `tee`
+pipeline can leave a partial snapshot after an early exit or write failure;
+use it only when loss is acceptable.
 
-1. No unwanted producer side effects.
-2. The observation can be recreated well enough for the decision.
-3. Replay is acceptably cheap and does not consume a problematic quota.
-4. The JSON shape is known.
-5. The filter is preflighted for syntax, shape, and 0/1/N cardinality.
-6. Producer and jq failures are independently observable.
+For direct pipelines, observe producer and jq failures separately. Bash exposes
+`PIPESTATUS` and Zsh `pipestatus`; capture them immediately. `pipefail` alone
+does not identify the failed stage. If stage statuses are unavailable, capture
+first. Keep raw snapshots, stderr, and diagnostic output out of context when
+they could disclose sensitive data.
 
-If stage statuses are unavailable, capture first. Bash exposes `PIPESTATUS` and
-Zsh `pipestatus`; `pipefail` alone does not identify the failed stage. Other
-shells and execution tools require their documented mechanism.
+## Define The Result
 
-When any fact is unresolved:
+For unknown input, start with `jq 'type' data.json`, then bounded key, count, or
+sample inspection. Omit sensitive key names; disclose sample size and
+truncation. A sample does not establish full-input homogeneity.
 
-1. Prefer a tool-managed full-output path/handle; otherwise use approved secure
-   temporary storage outside the repository when possible.
-2. Run the producer once, writing complete stdout to the snapshot, stderr
-   separately, and recording producer status.
-3. Verify capture completeness and jq compatibility. Producer failure still
-   matters when stdout parses.
-4. Query only the snapshot. Retain it until shape, identifiers, counts, scope,
-   producer status, and jq status are validated; then release it promptly.
+Define records, retained fields, 0/1/N results per top-level input, encoding,
+completeness scope, and the next consumer. Keep enough IDs, filenames, and
+source/match counts to trace the result. Disclose pagination, limits, sampling,
+and tool truncation; fetch all required pages before claiming a global total.
 
-Never replay a valuable producer merely to repair a filter. Keep sensitive or
-large raw output out of context. A live `tee` pipeline is not capture-first: an
-early downstream exit, closed pipe, partial write, disk failure, or hidden stage
-status can leave an incomplete snapshot. Use it only when loss is acceptable.
+Every filter can emit zero, one, or many values. Pipe passes each left result
+right; comma runs branches on the same input. `.[]` emits elements, `[expr]`
+collects results, and `select` can drop inputs. Keep these distinctions explicit:
 
-**Continue when:** direct replay is proven safe, or complete raw output and
-producer status exist independently of jq.
+- `has("x")` distinguishes an absent key from a present `null`.
+- `a // b` falls back when `a` emits no non-`false`/non-`null` value; preserve
+  legitimate `false` with explicit tests.
+- `empty` emits no value. Use `?`, `try`, or `// empty` only for established
+  optional or variant data; unexpected type errors are evidence.
+- `path = rhs` evaluates RHS against the assignment input and emits a root per
+  RHS result; `path |= rhs` uses the old path value. Prefer one RHS result and
+  explicit `del(path)`; consult [assignment compatibility](references/version-compatibility.md#adjacent-version-evidence-matrix)
+  when relying on other assignment behavior.
 
-## 3. Define The View
+Before interpreting empty output as no matches, check statuses, shape, path,
+predicate, optionality, scope, and expected cardinality.
 
-Discover shape strictly before final paths. Start with bounded type, count, and
-key inspection; omit keys when names may be sensitive:
+## Keep Files Intact
+
+For known shapes, simple views include:
 
 ```sh
-jq 'type' data.json
-jq 'if type == "object" then {key_count: (keys|length), keys: keys[:20]}
-    elif type == "array" then length as $n |
-      {count:$n, inspected_count:(if $n<20 then $n else 20 end),
-       inspected_types:([.[:20][]|type]|unique), inspection_truncated:($n>20)}
-    else {kind: type} end' data.json
+jq '{name,version}' package.json
+jq --arg status failed '[.tests[] | select(.status == $status) | {id,file}]' report.json
+jq -c 'select(.level == "error") | {id,message}' events.ndjson
 ```
 
-These probes run once per top-level JSON value and disclose bounded sampling;
-validate full heterogeneity separately when the contract requires it.
+Reject `jq FILTER source.json > source.json`: redirection can truncate the
+source before jq reads it. For a requested transformation, retain the original,
+write a separate candidate, parse it and check statuses and expected
+shape/cardinality, then use the environment-appropriate replacement mechanism.
+Generated manifests and lockfiles remain owned by their generators.
 
-Delay `?`, `try`, `// empty`, and similar suppression until missing/variant data
-is part of the established contract. `has("x")` distinguishes a missing key from
-present `null`; `//` treats `false` and `null` as fallback values; `empty` emits
-no value. Treat an unexpected type error as evidence, not noise.
+jq accepts a stream of whitespace-separated JSON values, including NDJSON.
+Parsing success does not establish one strict RFC JSON document; use a strict
+format-aware validator when that is required. `del` removes only specified
+paths, so redaction requires checking every secret location.
 
-Define the result before filtering:
+## Keep Code And Data Separate
 
-```text
-source shape + records + retained fields + 0/1/N cardinality
-             + encoding + completeness scope + consumer
-```
+| Shell / argument mode                                         | Filter quoting example      |
+| ------------------------------------------------------------- | --------------------------- |
+| POSIX `sh`, Bash, Zsh                                         | `jq '.["foo"]' data.json`   |
+| PowerShell 7.3+ with `Standard` or `Windows` argument passing | `jq '.["foo"]' data.json`   |
+| PowerShell with legacy native argument passing                | `jq '.[\"foo\"]' data.json` |
+| `cmd.exe`                                                     | `jq ".[\"foo\"]" data.json` |
 
-Retain IDs, names, filenames, source/match counts, or equivalent provenance.
-Disclose pagination, limits, sampling, streaming windows, and tool truncation.
-Fetch every required page before claiming a global total; otherwise label the
-view partial. For empty output, check producer/parse status, shape, path,
-predicate, optionality, scope, and expected cardinality before claiming no
-matches.
+PowerShell quoting depends on `$PSNativeCommandArgumentPassing` and version:
+7.3+ preserves embedded quotes in its modern modes, while legacy passing needs
+the extra escaping. See Microsoft's [native argument guidance](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parsing#passing-arguments-that-contain-quote-characters).
 
-**Continue when:** the view can support and challenge the intended decision.
-
-## 4. Query Files Without Destroying Them
-
-After validating one-document-per-file assumptions, use read-only views such as:
-
-- Package manifest: `jq '{name,version}' package.json`
-- API schema: `jq '.paths | keys' openapi.json`
-- Test/coverage report:
-  `jq '{total:(.tests|length),failed:[.tests[]|select(.status=="failed")|{id,file}]}' report.json`
-- Bundle statistics:
-  `jq 'reduce .assets[] as $a ({count:0,bytes:0}; ($a.size|if type=="number" then . else error("invalid size") end) as $n|.count+=1|.bytes+=$n)' stats.json`
-- SBOM: `jq '[.components[]|{name,version,supplier}]' bom.json`
-- Exported configuration: `jq 'del(.credentials,.tokens)' export.json` after
-  verifying every secret path
-- Multiple files: `jq '{file:input_filename,name,version}' a.json b.json`
-- NDJSON: `jq -c 'select(.level=="error")|{id,message}' events.ndjson`
-
-For JSON streams, every example can emit 0/N results per file; include that
-top-level cardinality in the result contract.
-
-`del` is not recursive secret discovery. `input_filename` also assumes a UTF-8
-locale; otherwise preserve provenance another way.
-
-Reject `jq FILTER source.json > source.json`: shell redirection can truncate the
-source before jq reads it. For an explicitly requested transformation, keep the
-original, write a separate candidate, check statuses/nonempty expectations,
-parse and assert its intended shape/cardinality, then use the
-environment-appropriate replacement mechanism. Generated manifests and
-lockfiles remain owned by their generators.
-
-jq reads a stream of whitespace-separated JSON values, so parsing success does
-not prove one strict RFC JSON document. NDJSON works when each record is JSON;
-JSONC/JSON5 comments and trailing commas do not. Reference jq 1.8.0 also accepts
-plain `NaN` and `Infinity`. Use a format-aware strict validator when strict
-single-document conformance matters, and probe older/vendor extensions.
-
-**Continue when:** the source remains intact and any candidate is separately
-parsed and shape-checked.
-
-## 5. Preserve Shell And Data Boundaries
-
-| Shell                 | jq program quoting                                                  |
-| --------------------- | ------------------------------------------------------------------- |
-| POSIX `sh`, Bash, Zsh | Single quotes; pass shell values separately.                        |
-| PowerShell            | Single quotes; write jq string quotes as `\"` for native arguments. |
-| `cmd.exe`             | Double quotes; write jq string quotes as `\"`.                      |
-
-No command string is portable across all three. Keep external values out of jq
-source: use `--arg` for strings, `--argjson` for parsed JSON, `--rawfile` for
-file text, `--slurpfile` for a parsed JSON stream, `--args`/`--jsonargs` for
-positionals, and `-f` for a maintained trusted filter. Never use shell word
-splitting or `eval`, and do not expose secrets merely to construct a query.
+Keep external values out of jq source. Use `--arg` for strings, `--argjson` for
+JSON, `--rawfile` for file text, `--slurpfile` for a parsed JSON stream, and
+`--args`/`--jsonargs` for positionals. Use `-f` for a maintained trusted filter.
+Avoid shell word splitting and `eval`; do not expose secrets to construct queries.
 
 For arbitrary strings, newline-delimited `-r` is unsafe. Keep JSON for JSON
-consumers, or use `--raw-output0` only when jq and the consumer support NUL,
-values cannot contain NUL, and option-like values are passed after `--` or via a
-non-option API. Materialize and validate output before a side-effecting consumer
-when partial application would matter.
+consumers, or use `--raw-output0` when the target and consumer support it and
+values cannot contain NUL. Protect the consumer from option-like values using
+`--` or a non-option API. Materialize and validate output before a side-effecting
+consumer when partial application would matter.
 
-**Continue when:** code, values, delimiters, and the consumer have explicit,
-shell-correct contracts.
+## Check Relevant Resource And Compatibility Constraints
 
-## 6. Track jq Semantics And Resources
+Prefer source-side filtering and incremental `reduce`/`foreach` to collecting
+large or unbounded input with `-s` or arrays. `--stream` changes input into a
+path/value representation and requires a stream-aware filter. `--stream-errors`
+and `--seq` can recover from malformed input; detect and disclose partial data.
 
-Every filter produces zero, one, or many results per input:
+Use `-c` for compact JSON. Sort keys or arrays only when their order is
+irrelevant. `-e` derives status from the last output, with a distinct no-output
+status; check the target if that behavior affects control flow.
 
-- Comma runs branches on the same input; pipe sends each left output right.
-- `.[]` iterates; `[.[]]` collects. `select` may drop input; `empty` always does.
-- `a // b` uses `b` when `a` emits no non-`false`/non-`null` value; otherwise
-  those values pass. Preserve legitimate `false` with explicit tests.
-- `?` and `try` suppress errors/outputs; use them only for established variants.
-- `reduce`/`foreach` can aggregate without collecting the full stream.
-- `path = rhs` evaluates RHS against the assignment input and emits a root per
-  RHS result. `path |= rhs` receives the old path value. For multi-output `|=`,
-  jq 1.5 uses the last result and jq 1.6+ the first; empty-RHS deletion is
-  documented from 1.6. Prefer one RHS result and explicit `del(path)`.
+Consult only the relevant section of
+[version compatibility](references/version-compatibility.md) when a used feature
+needs verification on the target, a build/platform detail affects correctness,
+or the task asks about compatibility or version history. An older or unknown
+version alone does not require reading the whole reference. When execution is
+allowed, use `jq --version`, `jq --help`, or a minimal probe for the behavior in
+question; otherwise state the unresolved constraint.
 
-| Mode                        | Contract                                                                                                                      |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Default, `-n`, `-R`, `-s`   | JSON stream; one null input; raw lines; or full-stream collection. Avoid slurping large/unbounded input.                      |
-| `--stream`                  | Path/value representation, requiring a stream-aware filter.                                                                   |
-| `--stream-errors`, `--seq`  | Parse failures become values, or malformed sequence input is skipped with warnings; detect/disclose partial recovery.         |
-| `-c`, `-r`, `--raw-output0` | Compact JSON, raw text, or version-gated NUL records. Match consumer boundaries.                                              |
-| `-S`, `sort`, `sort_by`     | Deterministic object keys or arrays; sort only when order is irrelevant.                                                      |
-| `--unbuffered`, `-e`        | Flush each output, or derive status from the last output; no output has a distinct status (4 in jq 1.7+). Verify every stage. |
+Keep large numeric identifiers as strings. Probe exact-number requirements,
+platform-dependent math/dates, or vendor behavior only when they affect the
+result. Treat modules as executable code and load only trusted modules.
 
-Prefer source-side filtering and incremental reduction. `--stream` is not a
-transparent low-memory switch. Probe exact decimal behavior, C math, and dates
-when correctness depends on build/platform details; otherwise report the
-constraint unresolved. Treat modules as executable code and raw snapshots,
-stderr, `debug`, and `stderr` output as possible secret channels.
+## Before Relying On The Result
 
-## Final Gate
+Check the conditions relevant to the task, without repeating satisfied checks:
 
-Before relying on a result, verify all of these:
-
-1. jq received permitted, actual bytes and the replay decision was correct.
-2. Valuable raw evidence and producer status remain recoverable.
-3. Producer, parse, compile/runtime, and jq statuses meet the contract.
-4. Shape and 0/1/N cardinality match expectations; missing/null/false/empty/error
-   remain distinct.
-5. IDs, counts, filenames, and completeness scope make the view traceable.
-6. Encoding, delimiters, ordering, and the next consumer agree.
-7. The original is intact; sensitive/temporary data follows retention policy.
-8. Version/build/platform behavior is verified or explicitly unresolved.
-
-If a check fails, correct the view against preserved evidence. Never repair a jq
-mistake by replaying a producer that failed the replay gate.
+- Producer and jq statuses support the claimed result.
+- Shape, result count, provenance, and completeness match the intended view.
+- Encoding, delimiters, ordering, and the consumer agree.
+- Originals and valuable evidence remain available as needed; sensitive and
+  temporary data follows retention requirements.

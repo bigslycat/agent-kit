@@ -1,14 +1,30 @@
 # jq Version Compatibility
 
-Read this reference before using a version-sensitive jq capability, targeting an
-older or unknown jq, or making a version-history claim. The current behavioral
-authority is the official [jq 1.8 manual](https://jqlang.org/manual/v1.8/).
-Observed behavior from the target executable outranks version inference when a
-vendor build, platform, or build option can change the result.
+Consult the relevant section for a compatibility question about a capability
+the filter uses, or for a requested version-history claim. An older or unknown
+jq version alone does not require reading the whole reference. The current
+behavioral authority is the official
+[jq 1.8 manual](https://jqlang.org/manual/v1.8/). Observed behavior from the
+target executable outranks version inference when a vendor build, platform, or
+build option can change the result.
+
+## Find The Relevant Section
+
+| Situation                                                  | Read                                                                                                                  |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| The target's support or behavior needs checking            | [Probe The Target](#probe-the-target)                                                                                 |
+| A used capability may differ in jq 1.7 or 1.8              | [jq 1.7 changes](#release-confirmed-jq-17-changes) or [jq 1.8.0 changes](#release-confirmed-jq-180-changes)           |
+| Correctness depends on a build, platform, or vendor detail | [Platform And Build Probes](#platform-and-build-probes)                                                               |
+| A question asks when behavior appeared or changed          | [Evidence Vocabulary](#evidence-vocabulary) and [Adjacent-Version Evidence Matrix](#adjacent-version-evidence-matrix) |
+| A question asks when an invocation option was documented   | [First-Documented Invocation Floors](#first-documented-invocation-floors)                                             |
+
+Use [Official Sources](#official-sources) for the underlying manuals and release
+notes when the selected section does not settle the question.
 
 ## Evidence Vocabulary
 
-Use these labels exactly:
+Preserve these distinctions when reporting compatibility evidence. The wording
+below may be translated or paraphrased:
 
 | Label                      | Evidence required                                                                                     |
 | -------------------------- | ----------------------------------------------------------------------------------------------------- |
@@ -20,9 +36,8 @@ Use these labels exactly:
 | `requires runtime probe`   | Version alone is insufficient because implementation, vendor, build, or platform can change behavior. |
 
 Manual absence establishes only documentation absence. It does not prove that a
-runtime lacks a capability. A new heading also does not prove a new capability:
-`repeat(exp)` appears in the jq 1.5 and 1.6 text but first receives a dedicated
-heading in the jq 1.7 manual.
+runtime lacks a capability. A new heading also does not prove a new capability;
+see the `repeat(exp)` row in the historical matrix.
 
 ## Official Sources
 
@@ -42,7 +57,7 @@ Release evidence:
 
 Useful manual sections include
 [invocation](https://jqlang.org/manual/v1.8/#invoking-jq),
-[operators and builtins](https://jqlang.org/manual/v1.8/#builtin-operators-and-functions),
+[builtins](https://jqlang.org/manual/v1.8/#builtin-operators-and-functions),
 [assignment](https://jqlang.org/manual/v1.8/#assignment),
 [streaming](https://jqlang.org/manual/v1.8/#streaming),
 [regular expressions](https://jqlang.org/manual/v1.8/#regular-expressions),
@@ -55,17 +70,18 @@ manual or its example corpus.
 
 ## Probe The Target
 
-Start with the actual executable when execution is allowed:
+For a concrete compatibility check, identify the actual executable when
+execution is allowed:
 
 ```sh
 jq --version
-jq --help
 ```
 
-Use `--help` to check options and a minimal, controlled input to check semantics.
+Use `jq --help` for a CLI-option question, or a minimal, controlled input for a
+semantic question. Probe only the behavior that affects the decision.
 Do not infer reference-jq behavior from a vendor suffix or from a jq-like
 implementation such as gojq or a selector embedded in another tool. Keep probes
-read-only and test the exact behavior that affects the decision.
+read-only.
 
 For build-sensitive number handling, inspect the available build information and
 probe representative literals without exposing sensitive data:
@@ -81,10 +97,13 @@ still force IEEE-754 conversion even when an unchanged literal prints exactly.
 
 ## Adjacent-Version Evidence Matrix
 
+Use this historical comparison for version-history questions or a specific
+compatibility difference listed below.
+
 `silent` means the complete compared manual does not state the audited behavior.
 It is not a runtime claim.
 
-| Behavior                            | jq 1.3                                    | jq 1.4                                    | jq 1.5                                | jq 1.6                           | jq 1.7                         | jq 1.8                                    | Approved conclusion                                                                                                                                                                                        |
+| Behavior                            | jq 1.3                                    | jq 1.4                                    | jq 1.5                                | jq 1.6                           | jq 1.7                         | jq 1.8                                    | Supported conclusion                                                                                                                                                                                       |
 | ----------------------------------- | ----------------------------------------- | ----------------------------------------- | ------------------------------------- | -------------------------------- | ------------------------------ | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Multi-result update-assignment RHS  | silent                                    | silent                                    | last result                           | first result                     | first result                   | first result                              | `changed in jq 1.6`. The 1.6+ compatibility note says jq 1.5 and earlier releases used the last result; the 1.3/1.4 manuals themselves are silent.                                                         |
 | Empty update-assignment RHS         | silent                                    | silent                                    | silent                                | deletes the path                 | deletes the path               | deletes the path                          | `first documented in jq 1.6`. Use `del(path)` when older compatibility matters.                                                                                                                            |
@@ -96,28 +115,16 @@ It is not a runtime claim.
 | `repeat(exp)`                       | silent                                    | silent                                    | documented in text                    | documented in text               | dedicated heading              | dedicated heading                         | `first documented in jq 1.5`; the jq 1.7 heading is not introduction evidence.                                                                                                                             |
 | Literal `NaN` and `Infinity` input  | silent                                    | silent                                    | silent                                | silent                           | silent                         | release says plain forms remain supported | jq is not a strict RFC JSON validator. Older or vendor behavior `requires runtime probe`.                                                                                                                  |
 
-### Assignment Compatibility
-
-Plain assignment and update assignment have different data flow:
-
-- `path = rhs` evaluates `rhs` against the assignment input and emits a modified
-  root for each RHS result. This multi-result behavior is first documented in
-  jq 1.5.
-- `path |= rhs` evaluates `rhs` against the old value at each selected path. For
-  a multi-result RHS, jq 1.5 uses the last result while jq 1.6+ specifies the
-  first.
-- An empty update RHS deletes the path in jq 1.6+ documentation. Use an explicit
-  `del(path)` when targeting older versions.
-
-Portable filters make an update RHS produce exactly one value and express
-deletion explicitly. Test the final root shape, not only the updated scalar.
+The multi-result behavior of plain assignment (`path = rhs`) is first
+documented in jq 1.5. For assignment compatibility checks, test the final root
+shape, not only the updated scalar.
 
 ## Release-Confirmed jq 1.7 Changes
 
 The [jq 1.7 release](https://github.com/jqlang/jq/releases/tag/jq-1.7)
-supports these labels:
+confirms these changes:
 
-| Capability or behavior          | Approved label         | Compatibility action                                                                                                                                                                                                                   |
+| Capability or behavior          | Evidence               | Compatibility action                                                                                                                                                                                                                   |
 | ------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pick(stream)`                  | `introduced in jq 1.7` | On older jq, construct the required object or array projection explicitly.                                                                                                                                                             |
 | `--raw-output0`                 | `introduced in jq 1.7` | On older jq, retain JSON encoding unless the consumer and an alternative delimiter can represent every value. Newline-delimited raw output is unsafe for arbitrary strings.                                                            |
@@ -136,9 +143,9 @@ do not rely on later inputs being processed after either filter.
 ## Release-Confirmed jq 1.8.0 Changes
 
 The [jq 1.8.0 release](https://github.com/jqlang/jq/releases/tag/jq-1.8.0)
-supports these labels:
+confirms these changes:
 
-| Capability or behavior                               | Approved label           | Compatibility action                                                                                                                               |
+| Capability or behavior                               | Evidence                 | Compatibility action                                                                                                                               |
 | ---------------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--library-path` long option                         | `introduced in jq 1.8.0` | `-L` is first documented in jq 1.5; probe earlier targets. It disables the builtin module search list, so supply intentional trusted paths.        |
 | `trim`, `ltrim`, and `rtrim`                         | `introduced in jq 1.8.0` | On older jq, use an explicitly tested normalization whose ASCII or Unicode whitespace contract is stated.                                          |
