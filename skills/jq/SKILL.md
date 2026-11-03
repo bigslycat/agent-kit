@@ -75,8 +75,8 @@ collects results, and `select` can drop inputs. Keep these distinctions explicit
   optional or variant data; unexpected type errors are evidence.
 - `path = rhs` evaluates RHS against the assignment input and emits a root per
   RHS result; `path |= rhs` uses the old path value. Prefer one RHS result and
-  explicit `del(path)`; consult [assignment compatibility](references/version-compatibility.md#adjacent-version-evidence-matrix)
-  when relying on other assignment behavior.
+  explicit `del(path)`; consult [assignment documentation](https://jqlang.org/manual/#assignment)
+  for the target jq version when relying on other assignment behavior.
 
 Before interpreting empty output as no matches, check statuses, shape, path,
 predicate, optionality, scope, and expected cardinality.
@@ -137,17 +137,17 @@ Use `-c` for compact JSON. Sort keys or arrays only when their order is
 irrelevant. `-e` derives status from the last output, with a distinct no-output
 status; check the target if that behavior affects control flow.
 
-Consult only the relevant section of
-[version compatibility](references/version-compatibility.md) when a used feature
-needs verification on the target, a build/platform detail affects correctness,
-or the task asks about compatibility or version history. An older or unknown
-version alone does not require reading the whole reference. When execution is
-allowed, use `jq --version`, `jq --help`, or a minimal probe for the behavior in
-question; otherwise state the unresolved constraint.
+For a version-sensitive feature or compatibility question, consult the relevant
+section of the [official manual](https://jqlang.org/manual/) for the target
+version and [release notes](https://github.com/jqlang/jq/releases) as needed.
+Do not treat a feature's first documentation as proof of its introduction.
+When execution is allowed, use `jq --version`, `jq --help`, or a minimal probe
+for the behavior in question; otherwise state the unresolved constraint.
 
-Keep large numeric identifiers as strings. Probe exact-number requirements,
-platform-dependent math/dates, or vendor behavior only when they affect the
-result. Treat modules as executable code and load only trusted modules.
+Keep large numeric identifiers as strings: exact literal output does not
+guarantee exact arithmetic. Probe exact-number requirements, platform-dependent
+math/dates, or vendor behavior only when they affect the result. Treat modules
+as executable code and load only trusted modules.
 
 ## Before Relying On The Result
 
