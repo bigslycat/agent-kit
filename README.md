@@ -5,6 +5,11 @@
     - [Install with skills](#install-with-skills)
   - [Intentional Commits](#intentional-commits)
     - [Install with skills](#install-with-skills-1)
+- [OpenCode](#opencode)
+  - [Commands](#commands)
+    - [/commit-message](#commit-message)
+    - [/commit](#commit)
+    - [/amend](#amend)
 
 ## Skills
 
@@ -48,4 +53,52 @@ Global:
 
 ```sh
 npx -y skills add -g bigslycat/agent-kit --skill intentional-commits
+```
+
+## OpenCode
+
+### Commands
+
+[Slash commands](https://opencode.ai/v2/docs/commands) for OpenCode. Copy the
+Markdown files from [`.opencode/commands/`](.opencode/commands/) into one of
+these locations:
+
+- `.opencode/commands/` in the target project for project-local commands.
+- `~/.config/opencode/commands/` for global commands.
+
+#### /commit-message
+
+[`/commit-message`](.opencode/commands/commit-message.md) suggests one or more
+commit messages. By default, it uses staged changes when present; otherwise, it
+uses unstaged and untracked changes. It leaves the working tree, index, and
+history untouched and skips project checks.
+
+Requires [Intentional Commits](#intentional-commits).
+
+```text
+/commit-message
+```
+
+#### /commit
+
+[`/commit`](.opencode/commands/commit.md) creates commits grouped by independent
+goals. By default, it includes all current changes.
+
+Requires [Intentional Commits](#intentional-commits).
+
+```text
+/commit README.md only
+```
+
+#### /amend
+
+[`/amend`](.opencode/commands/amend.md) updates `HEAD` as exactly one commit and
+revises its message to describe the complete amended commit. By default, it
+incorporates all current changes. A message-only request preserves the commit's
+contents and the index.
+
+Requires [Intentional Commits](#intentional-commits).
+
+```text
+/amend update the message only
 ```
