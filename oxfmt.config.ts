@@ -13,6 +13,7 @@ export default defineConfig({
   jsxSingleQuote: true,
   jsdoc: true,
   quoteProps: 'as-needed',
+  proseWrap: 'always',
 
   overrides: [
     {

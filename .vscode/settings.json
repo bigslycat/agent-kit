@@ -21,6 +21,11 @@
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
 
+  "[skill]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+
   "[yaml]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "oxc.oxc-vscode"
