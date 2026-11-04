@@ -6,6 +6,8 @@
 
   "editor.formatOnSave": false,
 
+  "markdown.extension.toc.levels": "2..6",
+
   "[typescript]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "oxc.oxc-vscode"
