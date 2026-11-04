@@ -1,10 +1,15 @@
 {
-  "name": "agent-skills",
+  "name": "agent-kit",
   "private": true,
   "license": "MIT",
   "author": {
     "name": "Pavel Tereschenko",
-    "email": "bigslycat@protonmail.com"
+    "email": "bigslycat@protonmail.com",
+    "url": "https://github.com/bigslycat"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/bigslycat/agent-kit.git"
   },
   "type": "module",
   "scripts": {

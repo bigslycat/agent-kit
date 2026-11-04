@@ -462,9 +462,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"agent-skills@workspace:.":
+"agent-kit@workspace:.":
   version: 0.0.0-use.local
-  resolution: "agent-skills@workspace:."
+  resolution: "agent-kit@workspace:."
   dependencies:
     "@types/node": "npm:^26.6.6"
     oxfmt: "npm:^0.76.0"
