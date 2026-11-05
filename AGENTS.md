@@ -13,6 +13,12 @@
   their `subagent: false` setting. Command behavior is documented in
   `README.md`.
 
+## Commit messages
+
+- Use
+  [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
+  for commit messages in this repository.
+
 ## Tooling and checks
 
 - Use Yarn, as selected by `packageManager` and `yarn.lock`; Node and Yarn
