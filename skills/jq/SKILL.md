@@ -1,6 +1,11 @@
 ---
 name: jq
-description: jq guidance for writing, running, explaining, reviewing, or debugging jq; querying persistent JSON; reducing accessible JSON from commands, APIs, or materialized tool results; and checking compatibility. Explicit jq requests qualify without runnable input; otherwise use it only at a meaningful JSON boundary.
+description: >-
+  jq guidance for writing, running, explaining, reviewing, or debugging jq;
+  querying persistent JSON; reducing accessible JSON from commands, APIs, or
+  materialized tool results; and checking compatibility. Explicit jq requests
+  qualify without runnable input; otherwise use it only at a meaningful JSON
+  boundary.
 license: MIT
 ---
 
@@ -40,12 +45,12 @@ approved secure temporary storage, outside the repository when possible:
    producer failure.
 3. Inspect and query the snapshot. Check an unfamiliar or nontrivial filter
    against that snapshot before relying on its output.
-4. Retain the source until the result is validated, then release it according
-   to its sensitivity and retention requirements.
+4. Retain the source until the result is validated, then release it according to
+   its sensitivity and retention requirements.
 
 Never replay a valuable producer merely to repair a filter. A live `tee`
-pipeline can leave a partial snapshot after an early exit or write failure;
-use it only when loss is acceptable.
+pipeline can leave a partial snapshot after an early exit or write failure; use
+it only when loss is acceptable.
 
 For direct pipelines, observe producer and jq failures separately. Bash exposes
 `PIPESTATUS` and Zsh `pipestatus`; capture them immediately. `pipefail` alone
@@ -66,7 +71,8 @@ and tool truncation; fetch all required pages before claiming a global total.
 
 Every filter can emit zero, one, or many values. Pipe passes each left result
 right; comma runs branches on the same input. `.[]` emits elements, `[expr]`
-collects results, and `select` can drop inputs. Keep these distinctions explicit:
+collects results, and `select` can drop inputs. Keep these distinctions
+explicit:
 
 - `has("x")` distinguishes an absent key from a present `null`.
 - `a // b` falls back when `a` emits no non-`false`/non-`null` value; preserve
@@ -75,8 +81,9 @@ collects results, and `select` can drop inputs. Keep these distinctions explicit
   optional or variant data; unexpected type errors are evidence.
 - `path = rhs` evaluates RHS against the assignment input and emits a root per
   RHS result; `path |= rhs` uses the old path value. Prefer one RHS result and
-  explicit `del(path)`; consult [assignment documentation](https://jqlang.org/manual/#assignment)
-  for the target jq version when relying on other assignment behavior.
+  explicit `del(path)`; consult
+  [assignment documentation](https://jqlang.org/manual/#assignment) for the
+  target jq version when relying on other assignment behavior.
 
 Before interpreting empty output as no matches, check statuses, shape, path,
 predicate, optionality, scope, and expected cardinality.
@@ -113,18 +120,20 @@ paths, so redaction requires checking every secret location.
 
 PowerShell quoting depends on `$PSNativeCommandArgumentPassing` and version:
 7.3+ preserves embedded quotes in its modern modes, while legacy passing needs
-the extra escaping. See Microsoft's [native argument guidance](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parsing#passing-arguments-that-contain-quote-characters).
+the extra escaping. See Microsoft's
+[native argument guidance](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parsing#passing-arguments-that-contain-quote-characters).
 
 Keep external values out of jq source. Use `--arg` for strings, `--argjson` for
 JSON, `--rawfile` for file text, `--slurpfile` for a parsed JSON stream, and
 `--args`/`--jsonargs` for positionals. Use `-f` for a maintained trusted filter.
-Avoid shell word splitting and `eval`; do not expose secrets to construct queries.
+Avoid shell word splitting and `eval`; do not expose secrets to construct
+queries.
 
 For arbitrary strings, newline-delimited `-r` is unsafe. Keep JSON for JSON
 consumers, or use `--raw-output0` when the target and consumer support it and
 values cannot contain NUL. Protect the consumer from option-like values using
-`--` or a non-option API. Materialize and validate output before a side-effecting
-consumer when partial application would matter.
+`--` or a non-option API. Materialize and validate output before a
+side-effecting consumer when partial application would matter.
 
 ## Check Relevant Resource And Compatibility Constraints
 
@@ -139,10 +148,10 @@ status; check the target if that behavior affects control flow.
 
 For a version-sensitive feature or compatibility question, consult the relevant
 section of the [official manual](https://jqlang.org/manual/) for the target
-version and [release notes](https://github.com/jqlang/jq/releases) as needed.
-Do not treat a feature's first documentation as proof of its introduction.
-When execution is allowed, use `jq --version`, `jq --help`, or a minimal probe
-for the behavior in question; otherwise state the unresolved constraint.
+version and [release notes](https://github.com/jqlang/jq/releases) as needed. Do
+not treat a feature's first documentation as proof of its introduction. When
+execution is allowed, use `jq --version`, `jq --help`, or a minimal probe for
+the behavior in question; otherwise state the unresolved constraint.
 
 Keep large numeric identifiers as strings: exact literal output does not
 guarantee exact arithmetic. Probe exact-number requirements, platform-dependent

@@ -1,6 +1,9 @@
 ---
 name: conventional-commits
-description: Conventional Commits 1.0.0 guidance. Use when choosing a commit type or scope, assessing a breaking change, writing or reviewing a commit message, or creating a commit.
+description: >-
+  Conventional Commits 1.0.0 guidance. Use when choosing a commit type or scope,
+  assessing a breaking change, writing or reviewing a commit message, or
+  creating a commit.
 license: MIT
 ---
 
@@ -23,8 +26,8 @@ Evaluate each message against three distinct layers:
    for bug fixes, but permits additional types and multiple breaking-change
    forms.
 2. **Repository policy** may narrow types, scopes, release behavior, or style.
-   Read documented local conventions before choosing a message and satisfy
-   them when they are compatible with the specification. Attribute every extra
+   Read documented local conventions before choosing a message and satisfy them
+   when they are compatible with the specification. Attribute every extra
    restriction to the repository. If local policy conflicts with a mandatory
    upstream rule, ask how to proceed rather than claiming both are satisfied.
 3. **Generation preferences** make new output consistent: use lowercase types
@@ -43,15 +46,15 @@ defines one.
 Inspect the complete available evidence: the user's request, the whole proposed
 or staged change, the affected before-and-after contracts, and documented
 repository conventions. State the single intent and consumer-visible effect.
-Classify the effect, not filenames or directories; comments in a production
-file can still be `docs`, while a dependency change can still be `feat`, `fix`,
-or breaking because of its effect.
+Classify the effect, not filenames or directories; comments in a production file
+can still be `docs`, while a dependency change can still be `feat`, `fix`, or
+breaking because of its effect.
 
 Treat supporting tests, documentation, and implementation for one behavior as
 one intent. Treat unrelated effects as separate intents. If independent feature
 and defect-correction intents coexist, stop and recommend separate `feat` and
-`fix` commits before constructing messages. Split other independent intents
-when one message would hide what changed.
+`fix` commits before constructing messages. Split other independent intents when
+one message would hide what changed.
 
 If the evidence does not reveal whether behavior is new, defective, unchanged,
 or part of a supported contract, ask for the missing intent or contract context.
@@ -69,8 +72,8 @@ Apply this precedence after Gate 1:
    library. This mandatory upstream meaning takes precedence over filenames and
    fallback types.
 2. Use `fix` whenever the atomic change corrects application or library behavior
-   that was defective relative to its intended contract. This remains `fix`
-   even when the correction is breaking.
+   that was defective relative to its intended contract. This remains `fix` even
+   when the correction is breaking.
 3. Only after excluding `feat` and `fix`, use a compatible type required by
    documented repository policy.
 4. If the repository has no matching type, use the narrowest fallback below.
@@ -91,9 +94,9 @@ Effects outrank mechanisms: for example, use `fix` rather than `test` when a
 test accompanies a defect correction, and use `feat` rather than `build` when a
 build-system change delivers a new application or library capability.
 
-**Gate 2 passes when:** one base type describes the established intent, mandatory
-`feat`/`fix` semantics are preserved, and any local vocabulary has been applied
-without being misrepresented as upstream policy.
+**Gate 2 passes when:** one base type describes the established intent,
+mandatory `feat`/`fix` semantics are preserved, and any local vocabulary has
+been applied without being misrepresented as upstream policy.
 
 ## 3. Assess Compatibility Independently
 
@@ -111,8 +114,8 @@ every supported consumer. Include:
 The change is breaking when an existing supported consumer must change code,
 data, configuration, automation, or operating environment to remain compatible.
 Removal or incompatible replacement is breaking even when the package is pre-1.0
-or the implementation diff is small. A breaking defect correction keeps `fix`;
-a breaking build change keeps `build`; breaking status never chooses the base
+or the implementation diff is small. A breaking defect correction keeps `fix`; a
+breaking build change keeps `build`; breaking status never chooses the base
 type.
 
 A compatible optional addition that preserves existing inputs, outputs, and
@@ -121,8 +124,8 @@ contracts is not breaking. If support commitments or consumer migration needs
 are unknown, ask who relies on the contract and what migration is required
 before deciding.
 
-**Gate 3 passes when:** every contract category is considered and breaking status
-plus any required consumer migration are known.
+**Gate 3 passes when:** every contract category is considered and breaking
+status plus any required consumer migration are known.
 
 ## 4. Construct The Message
 
@@ -166,9 +169,9 @@ BREAKING CHANGE: <incompatible contract and action consumers must take>
 and space. Its value must identify what became incompatible and give a concrete
 migration action, not merely say that the change is breaking.
 
-**Gate 4 passes when:** the message represents the selected type and compatibility
-status, every present section follows the grammar, and a newly generated
-breaking message contains both `!` and the migration-focused footer.
+**Gate 4 passes when:** the message represents the selected type and
+compatibility status, every present section follows the grammar, and a newly
+generated breaking message contains both `!` and the migration-focused footer.
 
 ## 5. Run The Blocking 16-Rule Audit
 
@@ -178,8 +181,8 @@ absent. If any applicable check fails, identify the failed rule, correct or
 reject the candidate, and rerun the complete audit. No failing candidate may be
 presented as final, approved, or used to create a commit.
 
-1. **Prefix:** It starts with a noun type, optional parenthesized scope, optional
-   `!`, and the required terminal colon and space, in that order.
+1. **Prefix:** It starts with a noun type, optional parenthesized scope,
+   optional `!`, and the required terminal colon and space, in that order.
 2. **Feature semantics:** It uses `feat` when the atomic change adds an
    application or library feature.
 3. **Fix semantics:** It uses `fix` when the atomic change is an application or
@@ -200,8 +203,8 @@ presented as final, approved, or used to create a commit.
    token `BREAKING CHANGE` is the sole space-containing exception.
 10. **Footer values:** Values may contain spaces and newlines. A multiline value
     ends only when the next valid footer token/separator pair begins.
-11. **Breaking indication:** A breaking change is indicated by `!` in the prefix,
-    a breaking footer, or both.
+11. **Breaking indication:** A breaking change is indicated by `!` in the
+    prefix, a breaking footer, or both.
 12. **Canonical breaking footer:** When the spaced form is used, it is exactly
     `BREAKING CHANGE: ` followed by a description.
 13. **Breaking prefix:** When used, `!` is immediately before the colon. A
@@ -211,8 +214,9 @@ presented as final, approved, or used to create a commit.
     upstream grammar. Confirm separately that it does not conceal mandatory
     `feat` or `fix` semantics and that repository policy permits it.
 15. **Case handling:** Treat information units as case-insensitive for upstream
-    validation except that the reserved `BREAKING CHANGE` form must be uppercase.
-    Lowercase output is a generation preference, not an upstream requirement.
+    validation except that the reserved `BREAKING CHANGE` form must be
+    uppercase. Lowercase output is a generation preference, not an upstream
+    requirement.
 16. **Equivalent token:** Accept exact `BREAKING-CHANGE` as synonymous with
     `BREAKING CHANGE` when it is a footer token.
 
@@ -224,5 +228,5 @@ canonical spaced footer under the separate generation policy.
 After the normative audit passes, apply repository policy, then generation
 preferences when generating. Report failures in the layer that owns the rule;
 never present optional style as a Conventional Commits requirement. If the user
-asked to create a commit, use the exact audited message only after all applicable
-layers pass.
+asked to create a commit, use the exact audited message only after all
+applicable layers pass.
