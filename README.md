@@ -73,22 +73,22 @@ commit messages. By default, it uses staged changes when present; otherwise, it
 uses unstaged and untracked changes. It leaves the working tree, index, and
 history untouched and skips project checks.
 
-Requires [Intentional Commits](#intentional-commits).
-
 ```text
 /commit-message
 ```
+
+Requires [Intentional Commits](#intentional-commits).
 
 #### /commit
 
 [`/commit`](.opencode/commands/commit.md) creates commits grouped by independent
 goals. By default, it includes all current changes.
 
-Requires [Intentional Commits](#intentional-commits).
-
 ```text
 /commit README.md only
 ```
+
+Requires [Intentional Commits](#intentional-commits).
 
 #### /amend
 
@@ -97,8 +97,8 @@ revises its message to describe the complete amended commit. By default, it
 incorporates all current changes. A message-only request preserves the commit's
 contents and the index.
 
-Requires [Intentional Commits](#intentional-commits).
-
 ```text
 /amend update the message only
 ```
+
+Requires [Intentional Commits](#intentional-commits).
