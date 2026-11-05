@@ -23,6 +23,10 @@ $ARGUMENTS
 
 !`git --no-optional-locks status --porcelain=v1 --branch --untracked-files=all`
 
+## Remotes
+
+!`git remote -v`
+
 ## Recent repository history (up to 10 commits across refs)
 
 !`git --no-pager log --all -10 --format=fuller --no-color --no-show-signature`

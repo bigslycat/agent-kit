@@ -23,6 +23,22 @@ $ARGUMENTS
 
 !`git --no-optional-locks status --porcelain=v1 --branch --untracked-files=all`
 
+## Remotes
+
+!`git remote -v`
+
+## Author identity
+
+!`git var GIT_AUTHOR_IDENT`
+
+## Committer identity
+
+!`git var GIT_COMMITTER_IDENT`
+
+## Hooks configuration
+
+!`git config get --default '' core.hooksPath`
+
 ## Recent repository history (up to 10 commits across refs)
 
 !`git --no-pager log --all -10 --format=fuller --no-color --no-show-signature`

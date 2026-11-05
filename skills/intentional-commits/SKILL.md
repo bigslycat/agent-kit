@@ -9,9 +9,16 @@ license: MIT
 
 # Intentional Commits
 
-Reuse the context provided in the request and earlier results, including diffs
-and commit history. Fill only material gaps; retrieve information again only
-when there are concrete signs of change or inconsistency.
+Use all relevant information already available in the request, conversation, and
+earlier results throughout the workflow. Before each read or query, identify the
+material gap, inconsistency, or concrete change that requires it; retrieve only
+what is needed to resolve it. A different command, tool, or output format does
+not justify fetching the same facts again.
+
+Instructions to inspect, verify, or compare require evaluating evidence, not
+automatically making tool calls. After an operation changes state, use its
+results or targeted queries for the affected facts; retain evidence that still
+applies.
 
 Run operations in parallel when they have no dependencies on each other's
 results and no shared-state conflicts. Batch sequential operations into one call
@@ -62,8 +69,9 @@ material gaps and conflicts are resolved.
 
 ## 3. Inspect current changes
 
-Verify the selected repository and branch. Use current diffs and untracked file
-contents to understand the changes and how they relate to the request.
+Confirm the selected repository and branch from the available evidence. Analyze
+the available diffs and relevant untracked file contents to understand the
+changes and how they relate to the request.
 
 Distinguish staged and unstaged changes, including partially staged files. One
 file may contain changes for different tasks. Preserve the working tree and

@@ -23,6 +23,22 @@ $ARGUMENTS
 
 !`git --no-optional-locks status --porcelain=v1 --branch --untracked-files=all`
 
+## Remotes
+
+!`git remote -v`
+
+## Author identity
+
+!`git var GIT_AUTHOR_IDENT`
+
+## Committer identity
+
+!`git var GIT_COMMITTER_IDENT`
+
+## Hooks configuration
+
+!`git config get --default '' core.hooksPath`
+
 ## Commit to amend
 
 !`git --no-pager log -1 --ignore-missing --first-parent --root --patch --no-relative --format=fuller --no-color --no-show-signature --no-ext-diff --no-textconv HEAD`
