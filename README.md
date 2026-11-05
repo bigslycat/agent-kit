@@ -9,6 +9,7 @@
     - [/commit-message](#commit-message)
     - [/commit](#commit)
     - [/amend](#amend)
+- [Installation prompt](#installation-prompt)
 
 ## Skills
 
@@ -122,3 +123,20 @@ contents and the index.
 ```
 
 Requires [Intentional Commits](#intentional-commits).
+
+## Installation prompt
+
+Copy and paste this prompt:
+
+```text
+Read the README at https://github.com/bigslycat/agent-kit.
+
+In one message, ask me to choose what to install (everything or selected items)
+and where (globally or locally). Let me choose the scope separately for each
+item. For local installation, suggest the current directory and let me specify
+another.
+
+After my reply, perform the installation according to the README, including
+required dependencies, and preserve existing user settings. Verify the result
+and briefly report what was installed and where.
+```
