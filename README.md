@@ -3,6 +3,7 @@
 - [Skills](#skills)
   - [jq](#jq)
   - [Intentional Commits](#intentional-commits)
+  - [Conventional Commits](#conventional-commits)
 - [OpenCode](#opencode)
   - [Commands](#commands)
     - [/commit-message](#commit-message)
@@ -51,6 +52,27 @@ Global:
 
 ```sh
 npx -y skills add -g bigslycat/agent-kit --skill intentional-commits
+```
+
+### Conventional Commits
+
+A skill for writing and reviewing commit messages against Conventional Commits
+1.0.0. It guides type and scope selection, assesses breaking changes, and
+distinguishes specification requirements from repository policies and generation
+preferences. See the [full guide](skills/conventional-commits/SKILL.md).
+
+#### Install with [skills](https://github.com/vercel-labs/skills)
+
+Project:
+
+```sh
+npx -y skills add bigslycat/agent-kit --skill conventional-commits
+```
+
+Global:
+
+```sh
+npx -y skills add -g bigslycat/agent-kit --skill conventional-commits
 ```
 
 ## OpenCode
