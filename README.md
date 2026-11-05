@@ -2,9 +2,7 @@
 
 - [Skills](#skills)
   - [jq](#jq)
-    - [Install with skills](#install-with-skills)
   - [Intentional Commits](#intentional-commits)
-    - [Install with skills](#install-with-skills-1)
 - [OpenCode](#opencode)
   - [Commands](#commands)
     - [/commit-message](#commit-message)
